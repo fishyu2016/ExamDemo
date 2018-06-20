@@ -2,6 +2,7 @@ package com.migu.schedule;
 
 
 import com.migu.schedule.constants.ReturnCodeKeys;
+import com.migu.schedule.info.CollectionDebit;
 import com.migu.schedule.info.IpMap;
 import com.migu.schedule.info.TaskInfo;
 import com.migu.schedule.info.WeightRoundRobin;
@@ -145,6 +146,15 @@ public class Schedule {
         if(null != upList && upList.size() > 0)
         {
             List upremoveList= new ArrayList();
+            Map<Integer, List<Integer>> nodeMap = CollectionDebit.divideDebitResult(upList,3);
+
+            for(Integer num : nodeMap.keySet())
+            {
+                
+
+
+            }
+
             for (int i = 0; i < upList.size() ; i++)
             {
                 IpMap ipMap =  new IpMap(resourceMap,set);
