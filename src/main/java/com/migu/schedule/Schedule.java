@@ -2,7 +2,9 @@ package com.migu.schedule;
 
 
 import com.migu.schedule.constants.ReturnCodeKeys;
+import com.migu.schedule.info.IpMap;
 import com.migu.schedule.info.TaskInfo;
+import com.migu.schedule.info.WeightRoundRobin;
 
 import java.util.*;
 
@@ -24,10 +26,10 @@ public class Schedule {
     public final List<Integer> upList = new ArrayList(10);
 
     //运行中的队列
-    public final List runList = new ArrayList(10);
+    public final List<Integer> runList = new ArrayList(10);
 
     //任务资源消耗
-    public final Map consumptionMap = new HashMap(10);
+    public final Map<Integer,Integer> consumptionMap = new HashMap(10);
 
 
     public int init()
@@ -123,19 +125,57 @@ public class Schedule {
             }
             if(null != runList && runList.contains(taskId))
             {
-                runList.remove(upList.indexOf(taskId));
+                runList.remove(runList.indexOf(taskId));
             }
         }
         return ReturnCodeKeys.E011;
     }
 
 
-    public int scheduleTask(int threshold) {
-        // TODO 方法未实现
+    public int scheduleTask(int threshold)
+    {
+        if(threshold <= 0)
+        {
+            return ReturnCodeKeys.E002;
+        }
 
-        //TODO 调度任务，将任务从挂起转移到正运行
-        //TODO 将任务分配的节点记录到taskMap中
-        return ReturnCodeKeys.E000;
+        Map<Integer,Integer> resourceMap = new HashMap();
+
+        //如果挂起任务存在
+        if(null != upList && upList.size() > 0)
+        {
+            List upremoveList= new ArrayList();
+            for (int i = 0; i < upList.size() ; i++)
+            {
+                IpMap ipMap =  new IpMap(resourceMap,set);
+                int nodeId = Integer.valueOf(WeightRoundRobin.getServer());
+                List taskList = map.get(nodeId);
+                if (taskList == null)
+                {
+                    taskList = new ArrayList();
+                }
+                taskList.add(upList.get(i));
+                //TODO 调度任务，将任务从挂起转移到正运行
+                runList.add(upList.get(i));
+                map.put(nodeId, taskList);
+                //TODO 将任务分配的节点记录到taskMap中
+                taskMap.put(upList.get(i),nodeId);
+
+                int countNum =0;
+
+                if(null !=resourceMap.get(nodeId))
+                {
+                    countNum = resourceMap.get(nodeId);
+                }
+
+                resourceMap.put(nodeId,countNum+consumptionMap.get(upList.get(i)));
+                upremoveList.add(upList.get(i));
+            }
+            upList.removeAll(upremoveList);
+
+
+        }
+        return ReturnCodeKeys.E013;
     }
 
 
@@ -155,11 +195,11 @@ public class Schedule {
 
         if(null != runList && runList.size() > 0)
         {
-            for (int i = 0; i < upList.size() ; i++)
+            for (int i = 0; i < runList.size() ; i++)
             {
                 TaskInfo taskInfo = new TaskInfo();
-                taskInfo.setTaskId(upList.get(i));
-                taskInfo.setNodeId(taskMap.get(upList.get(i)));
+                taskInfo.setTaskId(runList.get(i));
+                taskInfo.setNodeId(taskMap.get(runList.get(i)));
                 tasks.add(taskInfo);
             }
 
