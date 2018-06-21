@@ -6,6 +6,7 @@ import com.migu.schedule.info.CollectionDebit;
 import com.migu.schedule.info.IpMap;
 import com.migu.schedule.info.TaskInfo;
 import com.migu.schedule.info.WeightRoundRobin;
+import com.sun.jdi.ArrayReference;
 
 import java.util.*;
 
@@ -146,42 +147,68 @@ public class Schedule {
         if(null != upList && upList.size() > 0)
         {
             List upremoveList= new ArrayList();
-            Map<Integer, List<Integer>> nodeMap = CollectionDebit.divideDebitResult(upList,3);
+            Map<Integer, List<Integer>> nodeMap = CollectionDebit.divideDebitResult(upList,set.size());
 
+            List<Integer> list = new ArrayList(Arrays.asList(set));
             for(Integer num : nodeMap.keySet())
             {
-                
+                List tasks = nodeMap.get(num);
 
+                int nodeId = list.get(num);
+
+                for (int i = 0; i < tasks.size(); i++)
+                {
+                    List taskList = map.get(nodeId);
+                    if (taskList == null)
+                    {
+                        taskList = new ArrayList();
+                    }
+                    taskList.add(upList.get(i));
+                    //TODO 调度任务，将任务从挂起转移到正运行
+                    runList.add(upList.get(i));
+                    map.put(nodeId, taskList);
+                    //TODO 将任务分配的节点记录到taskMap中
+                    taskMap.put(upList.get(i),nodeId);
+
+                    int countNum =0;
+
+                    if(null !=resourceMap.get(nodeId))
+                    {
+                        countNum = resourceMap.get(nodeId);
+                    }
+                    resourceMap.put(nodeId,countNum+consumptionMap.get(upList.get(i)));
+
+                }
 
             }
 
-            for (int i = 0; i < upList.size() ; i++)
-            {
-                IpMap ipMap =  new IpMap(resourceMap,set);
-                int nodeId = Integer.valueOf(WeightRoundRobin.getServer());
-                List taskList = map.get(nodeId);
-                if (taskList == null)
-                {
-                    taskList = new ArrayList();
-                }
-                taskList.add(upList.get(i));
-                //TODO 调度任务，将任务从挂起转移到正运行
-                runList.add(upList.get(i));
-                map.put(nodeId, taskList);
-                //TODO 将任务分配的节点记录到taskMap中
-                taskMap.put(upList.get(i),nodeId);
-
-                int countNum =0;
-
-                if(null !=resourceMap.get(nodeId))
-                {
-                    countNum = resourceMap.get(nodeId);
-                }
-
-                resourceMap.put(nodeId,countNum+consumptionMap.get(upList.get(i)));
-                upremoveList.add(upList.get(i));
-            }
-            upList.removeAll(upremoveList);
+//            for (int i = 0; i < upList.size() ; i++)
+//            {
+//                IpMap ipMap =  new IpMap(resourceMap,set);
+//                int nodeId = Integer.valueOf(WeightRoundRobin.getServer());
+//                List taskList = map.get(nodeId);
+//                if (taskList == null)
+//                {
+//                    taskList = new ArrayList();
+//                }
+//                taskList.add(upList.get(i));
+//                //TODO 调度任务，将任务从挂起转移到正运行
+//                runList.add(upList.get(i));
+//                map.put(nodeId, taskList);
+//                //TODO 将任务分配的节点记录到taskMap中
+//                taskMap.put(upList.get(i),nodeId);
+//
+//                int countNum =0;
+//
+//                if(null !=resourceMap.get(nodeId))
+//                {
+//                    countNum = resourceMap.get(nodeId);
+//                }
+//
+//                resourceMap.put(nodeId,countNum+consumptionMap.get(upList.get(i)));
+//                upremoveList.add(upList.get(i));
+//            }
+//            upList.removeAll(upremoveList);
 
 
         }
